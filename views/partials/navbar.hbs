@@ -1,0 +1,20 @@
+<nav class="navbar">
+  <a href="/" class="navbar-brand">Inventory System</a>
+  {{#if user}}
+    <div class="navbar-links">
+      <a href="/">Dashboard</a>
+      <a href="/items">Inventory</a>
+      <a href="/transactions/checkout">Check Out</a>
+      <a href="/transactions/checkin">Check In</a>
+      {{#if (eq user.role "Admin")}}
+        <a href="/users">Users</a>
+        <a href="/keys">API Keys</a>
+        <a href="/reports">Reports</a>
+      {{/if}}
+    </div>
+    <div class="navbar-user">
+      <span>{{user.username}} ({{user.role}})</span>
+      <a href="/auth/logout" class="btn btn-sm">Logout</a>
+    </div>
+  {{/if}}
+</nav>

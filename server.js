@@ -6,11 +6,12 @@ const morgan = require('morgan');
 const path = require('path');
 const methodOverride = require('method-override');
 const session = require('express-session');
-const MongoStore = require('connect-mongo');
+const { MongoStore } = require('connect-mongo');
 const flash = require('connect-flash');
+const helmet = require('helmet');
+const cors = require('cors');
 const connectDB = require('./config/db');
 const corsOptions = require('./config/cors');
-const cors = require('cors');
 const rateLimiter = require('./middleware/rateLimiter');
 const errorHandler = require('./middleware/errorHandler');
 const hbsHelpers = require('./helpers/hbs');
@@ -33,6 +34,7 @@ app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
 // Middleware
+app.use(helmet());
 app.use(morgan('combined'));
 app.use(cors(corsOptions));
 app.use(express.json());

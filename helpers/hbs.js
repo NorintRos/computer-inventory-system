@@ -1,5 +1,6 @@
 const dayjs = require('dayjs');
 const relativeTime = require('dayjs/plugin/relativeTime');
+
 dayjs.extend(relativeTime);
 
 module.exports = {
@@ -35,7 +36,7 @@ module.exports = {
   json: (context) => JSON.stringify(context, null, 2),
 
   // Select helper for dropdowns: {{#select status}}...{{/select}}
-  select: function (value, options) {
+  select(value, options) {
     return options.fn(this).replace(new RegExp(`value="${value}"`), `value="${value}" selected`);
   },
 };
