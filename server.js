@@ -1,16 +1,26 @@
-require('dotenv').config();
+const path = require('path');
+
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+
+['MONGODB_URI', 'JWT_SECRET', 'SESSION_SECRET'].forEach((key) => {
+  const v = process.env[key];
+  if (!v || typeof v !== 'string' || !v.trim()) {
+    console.error(`Missing or empty ${key} in .env (see .env.example)`);
+    process.exit(1);
+  }
+});
+
 const express = require('express');
 const { engine } = require('express-handlebars');
 const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
-const path = require('path');
 const methodOverride = require('method-override');
 const session = require('express-session');
-const MongoStore = require('connect-mongo');
+const { MongoStore } = require('connect-mongo');
 const flash = require('connect-flash');
+const cors = require('cors');
 const connectDB = require('./config/db');
 const corsOptions = require('./config/cors');
-const cors = require('cors');
 const rateLimiter = require('./middleware/rateLimiter');
 const errorHandler = require('./middleware/errorHandler');
 const hbsHelpers = require('./helpers/hbs');
