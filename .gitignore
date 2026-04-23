@@ -1,3 +1,8 @@
 node_modules/
 .env
 coverage/
+dist/
+logs/   
+package-lock.json
+.DS_Store
+.idea/
