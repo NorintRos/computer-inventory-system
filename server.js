@@ -2,6 +2,7 @@ const path = require('path');
 
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 
+// Fail fast on missing critical env vars (from master — catches config drift early).
 ['MONGODB_URI', 'JWT_SECRET', 'SESSION_SECRET'].forEach((key) => {
   const v = process.env[key];
   if (!v || typeof v !== 'string' || !v.trim()) {
@@ -16,21 +17,20 @@ const cookieParser = require('cookie-parser');
 const morgan = require('morgan');
 const methodOverride = require('method-override');
 const session = require('express-session');
-const { MongoStore } = require('connect-mongo');
 const flash = require('connect-flash');
+const helmet = require('helmet');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const corsOptions = require('./config/cors');
+const sessionConfig = require('./config/session');
 const rateLimiter = require('./middleware/rateLimiter');
 const errorHandler = require('./middleware/errorHandler');
 const hbsHelpers = require('./helpers/hbs');
 
 const app = express();
 
-// Connect DB
 connectDB();
 
-// View engine
 app.engine(
   'hbs',
   engine({
@@ -42,7 +42,7 @@ app.engine(
 app.set('view engine', 'hbs');
 app.set('views', path.join(__dirname, 'views'));
 
-// Middleware
+app.use(helmet());
 app.use(morgan('combined'));
 app.use(cors(corsOptions));
 app.use(express.json());
@@ -52,33 +52,21 @@ app.use(methodOverride('_method'));
 app.use(rateLimiter);
 app.use(express.static(path.join(__dirname, 'public')));
 
-// Session (for flash messages)
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }),
-    cookie: { maxAge: 1000 * 60 * 60 * 8 }, // 8 hours
-  }),
-);
+app.use(session(sessionConfig));
 app.use(flash());
 
-// Make flash messages available in all HBS templates
 app.use((req, res, next) => {
   res.locals.success = req.flash('success');
   res.locals.error = req.flash('error');
   next();
 });
 
-// API routes
 app.use('/api/auth', require('./routes/api/auth'));
 app.use('/api/users', require('./routes/api/users'));
 app.use('/api/items', require('./routes/api/items'));
 app.use('/api/keys', require('./routes/api/keys'));
 app.use('/api/transactions', require('./routes/api/transactions'));
 
-// UI routes
 app.use('/', require('./routes/ui/index'));
 app.use('/auth', require('./routes/ui/auth'));
 app.use('/items', require('./routes/ui/items'));
@@ -88,10 +76,11 @@ app.use('/transactions', require('./routes/ui/transactions'));
 app.use('/history', require('./routes/ui/history'));
 app.use('/reports', require('./routes/ui/reports'));
 
-// Error handler
 app.use(errorHandler);
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+if (require.main === module) {
+  app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+}
 
 module.exports = app; // Export for supertest

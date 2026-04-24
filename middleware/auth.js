@@ -1,71 +1,69 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
-const { validateApiKey } = require('./apiKey');
 
-const { JWT_SECRET, JWT_EXPIRES_IN: JWT_EXPIRES_IN_ENV } = process.env;
-const JWT_EXPIRES_IN = JWT_EXPIRES_IN_ENV || '8h';
-
-function signToken(user) {
-  return jwt.sign(
-    {
-      sub: user._id.toString(),
-      role: user.role,
-      username: user.username,
-    },
-    JWT_SECRET,
-    { expiresIn: JWT_EXPIRES_IN },
-  );
-}
-
-function extractBearerToken(req) {
+const auth = async (req, res, next) => {
+  let token;
   const authHeader = req.headers.authorization;
-  if (authHeader?.startsWith('Bearer ')) {
-    return authHeader.slice(7).trim();
+  if (authHeader && authHeader.startsWith('Bearer ')) {
+    [, token] = authHeader.split(' ');
   }
-  return null;
-}
-
-function extractJwtCookie(req) {
-  const name = process.env.JWT_COOKIE_NAME || 'cis_token';
-  return req.cookies?.[name] || null;
-}
-
-/**
- * Requires a valid JWT (Bearer or JWT cookie). User must exist and be Enabled.
- */
-async function authenticateJwt(req, res, next) {
-  const token = extractBearerToken(req) || extractJwtCookie(req);
+  if (!token && req.cookies) {
+    token = req.cookies[process.env.COOKIE_NAME];
+  }
   if (!token) {
-    return res.status(401).json({ error: 'Authentication required' });
+    return res.status(401).json({ error: 'No token provided' });
+  }
+
+  let decoded;
+  try {
+    decoded = jwt.verify(token, process.env.JWT_SECRET);
+  } catch (err) {
+    if (err.name === 'TokenExpiredError') {
+      return res.status(401).json({ error: 'Token expired' });
+    }
+    return res.status(401).json({ error: 'Invalid token' });
   }
 
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
-    const user = await User.findById(payload.sub).select('username role status');
-    if (!user || user.status !== 'Enabled') {
-      return res.status(401).json({ error: 'Invalid or disabled user' });
+    // Accept both `id` (dev) and `sub` (master) claims so tokens minted by
+    // either side still validate during the transition.
+    const userId = decoded.id || decoded.sub;
+    const user = await User.findById(userId).select('-password');
+    if (!user) {
+      return res.status(401).json({ error: 'User not found' });
+    }
+    if (user.status === 'Disabled') {
+      return res.status(403).json({ error: 'Account is disabled' });
     }
     req.user = user;
     return next();
-  } catch {
-    return res.status(401).json({ error: 'Invalid token' });
+  } catch (err) {
+    return next(err);
   }
-}
-
-/**
- * For routes that accept either JWT or `x-api-key`.
- * If Authorization Bearer (or JWT cookie) is present, JWT is used (no fallback to API key on JWT failure).
- */
-async function authenticateJwtOrApiKey(req, res, next) {
-  const token = extractBearerToken(req) || extractJwtCookie(req);
-  if (token) {
-    return authenticateJwt(req, res, next);
-  }
-  return validateApiKey(req, res, next);
-}
-
-module.exports = {
-  signToken,
-  authenticateJwt,
-  authenticateJwtOrApiKey,
 };
+
+// Endpoints that accept JWT OR x-api-key (per CLAUDE.md, only GET /api/items).
+const authOrApiKey = async (req, res, next) => {
+  const hasBearer = req.headers.authorization?.startsWith('Bearer ');
+  const cookieName = process.env.COOKIE_NAME;
+  const hasCookie = cookieName && req.cookies?.[cookieName];
+  if (hasBearer || hasCookie) {
+    return auth(req, res, next);
+  }
+  // Lazy-require to avoid circular imports.
+  // eslint-disable-next-line global-require
+  const { validateApiKey } = require('./apiKey');
+  return validateApiKey(req, res, next);
+};
+
+const signToken = (user) => jwt.sign(
+  { id: user._id, username: user.username, role: user.role },
+  process.env.JWT_SECRET,
+  { expiresIn: process.env.JWT_EXPIRES_IN || '8h' },
+);
+
+module.exports = auth;
+module.exports.auth = auth;
+module.exports.authenticateJwt = auth;
+module.exports.authenticateJwtOrApiKey = authOrApiKey;
+module.exports.signToken = signToken;

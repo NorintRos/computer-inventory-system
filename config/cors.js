@@ -1,5 +1,5 @@
 const corsOptions = {
-  origin: function (origin, callback) {
+  origin(origin, callback) {
     // Allow same-origin (origin is undefined for same-origin requests)
     if (!origin) {
       callback(null, true);
