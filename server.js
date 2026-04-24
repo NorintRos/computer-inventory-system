@@ -6,12 +6,12 @@ const morgan = require('morgan');
 const path = require('path');
 const methodOverride = require('method-override');
 const session = require('express-session');
-const { MongoStore } = require('connect-mongo');
 const flash = require('connect-flash');
 const helmet = require('helmet');
 const cors = require('cors');
 const connectDB = require('./config/db');
 const corsOptions = require('./config/cors');
+const sessionConfig = require('./config/session');
 const rateLimiter = require('./middleware/rateLimiter');
 const errorHandler = require('./middleware/errorHandler');
 const hbsHelpers = require('./helpers/hbs');
@@ -45,15 +45,7 @@ app.use(rateLimiter);
 app.use(express.static(path.join(__dirname, 'public')));
 
 // Session (for flash messages)
-app.use(
-  session({
-    secret: process.env.SESSION_SECRET,
-    resave: false,
-    saveUninitialized: false,
-    store: MongoStore.create({ mongoUrl: process.env.MONGODB_URI }),
-    cookie: { maxAge: 1000 * 60 * 60 * 8 }, // 8 hours
-  }),
-);
+app.use(session(sessionConfig));
 app.use(flash());
 
 // Make flash messages available in all HBS templates

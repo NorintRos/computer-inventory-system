@@ -39,4 +39,7 @@ module.exports = {
   select(value, options) {
     return options.fn(this).replace(new RegExp(`value="${value}"`), `value="${value}" selected`);
   },
+
+  // Current year for footer: {{currentYear}}
+  currentYear: () => new Date().getFullYear(),
 };
