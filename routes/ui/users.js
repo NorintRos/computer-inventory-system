@@ -2,6 +2,8 @@ const express = require('express');
 
 const router = express.Router();
 
-// TODO: user management UI routes (Admin only)
+router.get('/', (req, res) => {
+  res.type('html').send('<p>Users UI not implemented</p>');
+});
 
 module.exports = router;

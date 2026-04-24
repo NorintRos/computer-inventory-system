@@ -2,6 +2,8 @@ const express = require('express');
 
 const router = express.Router();
 
-// TODO: checkout/checkin UI routes
+router.get('/', (req, res) => {
+  res.type('html').send('<p>Transactions UI not implemented — use /api/transactions</p>');
+});
 
 module.exports = router;

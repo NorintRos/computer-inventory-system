@@ -50,8 +50,20 @@ beforeAll(async () => {
   }
   const tech = await User.findOne({ username: 'testtech' });
   await ApiKey.create([
-    { hashedKey: 'fakehash1', label: 'cascade-test-1', createdBy: tech._id, active: true },
-    { hashedKey: 'fakehash2', label: 'cascade-test-2', createdBy: tech._id, active: true },
+    {
+      lookupHash: 'lookup-cascade-1',
+      hashedKey: 'fakehash1',
+      label: 'cascade-test-1',
+      createdBy: tech._id,
+      active: true,
+    },
+    {
+      lookupHash: 'lookup-cascade-2',
+      hashedKey: 'fakehash2',
+      label: 'cascade-test-2',
+      createdBy: tech._id,
+      active: true,
+    },
   ]);
 });
 

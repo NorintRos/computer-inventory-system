@@ -2,6 +2,8 @@ const express = require('express');
 
 const router = express.Router();
 
-// TODO: POST /api/transactions/checkout, POST /api/transactions/checkin
+router.get('/', (req, res) => {
+  res.json({ transactions: [], message: 'Not implemented' });
+});
 
 module.exports = router;

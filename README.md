@@ -66,7 +66,15 @@ npm install
 
 ### 2. Configure environment
 
-Create a `.env` file in the project root:
+Copy the example file and edit it (or create `.env` manually):
+
+```bash
+cp .env.example .env
+```
+
+On Windows PowerShell: `Copy-Item .env.example .env`
+
+Fill in `.env` in the project root (minimum: **`MONGODB_URI`**, **`JWT_SECRET`**, **`SESSION_SECRET`** for the full app):
 
 ```env
 PORT=3000
@@ -74,6 +82,7 @@ NODE_ENV=development
 MONGODB_URI=<your MongoDB connection string>
 JWT_SECRET=<random 64-byte hex string>
 JWT_EXPIRES_IN=8h
+JWT_COOKIE_NAME=cis_token
 COOKIE_NAME=cis_session
 SESSION_SECRET=<random 64-byte hex string>
 ```
@@ -125,6 +134,20 @@ Server runs at `http://localhost:3000`.
 - **Sessions**: Stored in MongoDB, 8-hour expiry
 - **Passwords**: Hashed with bcrypt (cost factor 10)
 - **Auth**: JWT stored in a cookie (`cis_session`)
+
+### API keys (Member C)
+
+Programmatic access can use the `x-api-key` header. Keys are created via the JSON API (JWT required).
+
+| Endpoint | Description |
+|---|---|
+| `POST /api/keys` | Create a key. The response includes the **raw key once**; only a bcrypt hash and SHA-256 lookup digest are stored. |
+| `GET /api/keys` | List **active** keys (no secret material). Admins see all active keys; other users see their own. |
+| `DELETE /api/keys/:id` | Revoke a key (`active: false`). Owner or Admin. |
+
+**Items API:** `GET /api/items` accepts either a JWT (`Authorization: Bearer …`, or cookie `cis_token` by default — override with `JWT_COOKIE_NAME`) **or** a valid `x-api-key`.
+
+**Disabled users:** Keys whose owner has `status: Disabled` are rejected when used (treated as invalid).
 
 ---
 

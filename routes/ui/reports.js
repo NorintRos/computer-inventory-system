@@ -2,6 +2,8 @@ const express = require('express');
 
 const router = express.Router();
 
-// TODO: GET /reports (Admin only)
+router.get('/', (req, res) => {
+  res.type('html').send('<p>Reports UI not implemented</p>');
+});
 
 module.exports = router;
