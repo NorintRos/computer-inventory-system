@@ -70,18 +70,22 @@ router.patch('/:id/status', async (req, res, next) => {
       return res.status(400).json({ error: 'Cannot disable your own account' });
     }
 
+    // Load first so we can 404 before mutating anything.
+    const existing = await User.findById(req.params.id);
+    if (!existing) return res.status(404).json({ error: 'User not found' });
+
+    // CRITICAL: invalidate keys BEFORE flipping the user status so a cascade
+    // failure leaves the user still able to log in, not stuck disabled with
+    // live API keys (direct violation of CLAUDE.md "Business Rules" #3).
+    if (status === 'Disabled') {
+      await ApiKey.updateMany({ createdBy: existing._id }, { active: false });
+    }
+
     const user = await User.findByIdAndUpdate(
       req.params.id,
       { status },
       { new: true, runValidators: true },
     ).select('-password');
-
-    if (!user) return res.status(404).json({ error: 'User not found' });
-
-    // CRITICAL: disabling a user invalidates all their API keys
-    if (status === 'Disabled') {
-      await ApiKey.updateMany({ createdBy: user._id }, { active: false });
-    }
 
     return res.json(user);
   } catch (err) {
