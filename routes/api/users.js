@@ -7,11 +7,9 @@ const { adminOnly } = require('../../middleware/rbac');
 
 const router = express.Router();
 
-// All user routes require JWT + Admin
 router.use(auth, adminOnly);
 
-// POST /api/users — create new user
-router.post('/', async (req, res) => {
+router.post('/', async (req, res, next) => {
   try {
     const { username, password, role } = req.body;
     if (!username || !password) {
@@ -23,17 +21,19 @@ router.post('/', async (req, res) => {
 
     const userObj = user.toObject();
     delete userObj.password;
-    res.status(201).json(userObj);
+    return res.status(201).json(userObj);
   } catch (err) {
     if (err.code === 11000) {
       return res.status(400).json({ error: 'Username already exists' });
     }
-    res.status(500).json({ error: err.message });
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ error: err.message });
+    }
+    return next(err);
   }
 });
 
-// PATCH /api/users/:id/role — update user role
-router.patch('/:id/role', async (req, res) => {
+router.patch('/:id/role', async (req, res, next) => {
   try {
     const { role } = req.body;
     if (!['Admin', 'Technician'].includes(role)) {
@@ -47,18 +47,27 @@ router.patch('/:id/role', async (req, res) => {
     ).select('-password');
 
     if (!user) return res.status(404).json({ error: 'User not found' });
-    res.json(user);
+    return res.json(user);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    if (err.name === 'CastError') {
+      return res.status(400).json({ error: 'Invalid user id' });
+    }
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ error: err.message });
+    }
+    return next(err);
   }
 });
 
-// PATCH /api/users/:id/status — enable/disable user
-router.patch('/:id/status', async (req, res) => {
+router.patch('/:id/status', async (req, res, next) => {
   try {
     const { status } = req.body;
     if (!['Enabled', 'Disabled'].includes(status)) {
       return res.status(400).json({ error: 'Status must be Enabled or Disabled' });
+    }
+
+    if (status === 'Disabled' && req.params.id === String(req.user._id)) {
+      return res.status(400).json({ error: 'Cannot disable your own account' });
     }
 
     const user = await User.findByIdAndUpdate(
@@ -74,9 +83,15 @@ router.patch('/:id/status', async (req, res) => {
       await ApiKey.updateMany({ createdBy: user._id }, { active: false });
     }
 
-    res.json(user);
+    return res.json(user);
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    if (err.name === 'CastError') {
+      return res.status(400).json({ error: 'Invalid user id' });
+    }
+    if (err.name === 'ValidationError') {
+      return res.status(400).json({ error: err.message });
+    }
+    return next(err);
   }
 });
 
