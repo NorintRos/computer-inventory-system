@@ -1,0 +1,60 @@
+<section class="page-hero row-between">
+  <div>
+    <h1>API keys</h1>
+    <p class="text-muted">Issue and revoke integration keys (admin only).</p>
+  </div>
+</section>
+
+{{#if newApiKey}}
+  <div class="alert alert-key">
+    <strong>Copy this key now.</strong> It will not be shown again.
+    <div class="key-reveal"><code>{{newApiKey}}</code></div>
+  </div>
+{{/if}}
+
+<div class="grid-2">
+  <section class="card stack-form">
+    <h2>Create key</h2>
+    <form method="post" action="/keys">
+      <label class="field">
+        <span>Label</span>
+        <input type="text" name="label" placeholder="e.g. Reporting service" maxlength="120" />
+      </label>
+      <button type="submit" class="btn btn-primary">Generate key</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>Active keys</h2>
+    <div class="table-wrap">
+      <table class="data-table compact">
+        <thead>
+          <tr>
+            <th>Label</th>
+            <th>Created by</th>
+            <th>Created</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each keys}}
+            <tr>
+              <td>{{label}}</td>
+              <td>{{#if createdBy}}{{createdBy.username}}{{else}}—{{/if}}</td>
+              <td>{{formatDate createdAt "MMM D, YYYY HH:mm"}}</td>
+              <td>
+                <form method="post" action="/keys/{{_id}}/revoke" onsubmit="return confirm('Revoke this key? Integrations using it will stop working.');">
+                  <button type="submit" class="btn btn-sm btn-danger">Revoke</button>
+                </form>
+              </td>
+            </tr>
+          {{else}}
+            <tr>
+              <td colspan="4" class="cell-empty">No active API keys.</td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
