@@ -66,7 +66,6 @@ app.use('/api/users', require('./routes/api/users'));
 app.use('/api/items', require('./routes/api/items'));
 app.use('/api/keys', require('./routes/api/keys'));
 app.use('/api/transactions', require('./routes/api/transactions'));
-app.use('/api/files', require('./routes/api/files'));
 
 app.use('/', require('./routes/ui/index'));
 app.use('/auth', require('./routes/ui/auth'));
