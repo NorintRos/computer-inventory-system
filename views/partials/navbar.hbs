@@ -13,12 +13,8 @@
       {{/if}}
     </div>
     <div class="navbar-user">
-      <span class="navbar-user-meta">{{user.username}} · {{user.role}}</span>
+      <span>{{user.username}} ({{user.role}})</span>
       <a href="/auth/logout" class="btn btn-sm">Logout</a>
-    </div>
-  {{else}}
-    <div class="navbar-links navbar-links-end">
-      <a href="/auth/login" class="btn btn-sm btn-primary">Sign in</a>
     </div>
   {{/if}}
 </nav>

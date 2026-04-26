@@ -7,9 +7,6 @@ module.exports = {
   // Equality check: {{#if (eq status "Available")}}
   eq: (a, b) => a === b,
 
-  // Normalize ObjectId / any value for comparisons in templates
-  toStringId: (id) => (id == null ? '' : String(id)),
-
   // Format date: {{formatDate dateAcquired "MMM D, YYYY"}}
   formatDate: (date, format) => {
     if (!date) return '';

@@ -25,7 +25,6 @@ const corsOptions = require('./config/cors');
 const sessionConfig = require('./config/session');
 const rateLimiter = require('./middleware/rateLimiter');
 const errorHandler = require('./middleware/errorHandler');
-const { attachUser } = require('./middleware/uiAuth');
 const hbsHelpers = require('./helpers/hbs');
 
 const app = express();
@@ -57,21 +56,16 @@ app.use(session(sessionConfig));
 app.use(flash());
 
 app.use((req, res, next) => {
-  const success = req.flash('success');
-  const error = req.flash('error');
-  res.locals.success = success.length ? success.join(' ') : undefined;
-  res.locals.error = error.length ? error.join(' ') : undefined;
+  res.locals.success = req.flash('success');
+  res.locals.error = req.flash('error');
   next();
 });
-
-app.use(attachUser);
 
 app.use('/api/auth', require('./routes/api/auth'));
 app.use('/api/users', require('./routes/api/users'));
 app.use('/api/items', require('./routes/api/items'));
 app.use('/api/keys', require('./routes/api/keys'));
 app.use('/api/transactions', require('./routes/api/transactions'));
-app.use('/api/files', require('./routes/api/files'));
 
 app.use('/', require('./routes/ui/index'));
 app.use('/auth', require('./routes/ui/auth'));
