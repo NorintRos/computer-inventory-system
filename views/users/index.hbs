@@ -1,0 +1,75 @@
+<section class="page-hero">
+  <h1>User management</h1>
+  <p class="text-muted">Create accounts and control roles (admin only).</p>
+</section>
+
+<div class="grid-2">
+  <section class="card stack-form">
+    <h2>Add user</h2>
+    <form method="post" action="/users">
+      <label class="field">
+        <span>Username</span>
+        <input type="text" name="username" required autocomplete="off" />
+      </label>
+      <label class="field">
+        <span>Password</span>
+        <input type="password" name="password" required autocomplete="new-password" />
+      </label>
+      <label class="field">
+        <span>Role</span>
+        <select name="role">
+          <option value="Technician">Technician</option>
+          <option value="Admin">Admin</option>
+        </select>
+      </label>
+      <button type="submit" class="btn btn-primary">Create user</button>
+    </form>
+  </section>
+
+  <section class="card">
+    <h2>All users</h2>
+    <div class="table-wrap">
+      <table class="data-table compact">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Role</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each users}}
+            <tr>
+              <td><strong>{{username}}</strong></td>
+              <td>
+                <form method="post" action="/users/{{_id}}/role" class="inline-form">
+                  <select name="role" onchange="this.form.submit()">
+                    <option value="Technician" {{#if (eq role "Technician")}}selected{{/if}}>Technician</option>
+                    <option value="Admin" {{#if (eq role "Admin")}}selected{{/if}}>Admin</option>
+                  </select>
+                </form>
+              </td>
+              <td><span class="badge {{statusBadge status}}">{{status}}</span></td>
+              <td>
+                {{#if (eq (toStringId _id) ../currentUserId)}}
+                  <span class="text-muted">You</span>
+                {{else}}
+                  <form method="post" action="/users/{{_id}}/status" class="inline-actions">
+                    {{#if (eq status "Enabled")}}
+                      <input type="hidden" name="status" value="Disabled" />
+                      <button type="submit" class="btn btn-sm btn-danger">Disable</button>
+                    {{else}}
+                      <input type="hidden" name="status" value="Enabled" />
+                      <button type="submit" class="btn btn-sm btn-secondary">Enable</button>
+                    {{/if}}
+                  </form>
+                {{/if}}
+              </td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>

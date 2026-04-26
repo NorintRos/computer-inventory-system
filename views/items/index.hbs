@@ -1,0 +1,71 @@
+<section class="page-hero row-between">
+  <div>
+    <h1>Inventory</h1>
+    <p class="text-muted">Search and filter assets.</p>
+  </div>
+  <a href="/items/new" class="btn btn-primary">Add item</a>
+</section>
+
+<form method="get" action="/items" class="filter-bar card">
+  <label class="field-inline">
+    <span>Search</span>
+    <input type="search" name="q" value="{{filters.q}}" placeholder="ID, serial, model, brand…" />
+  </label>
+  <label class="field-inline">
+    <span>Status</span>
+    <select name="status">
+      <option value="">Any</option>
+      {{#each statuses}}
+        <option value="{{this}}" {{#if (eq ../filters.status this)}}selected{{/if}}>{{this}}</option>
+      {{/each}}
+    </select>
+  </label>
+  <label class="field-inline">
+    <span>Category</span>
+    <select name="category">
+      <option value="">Any</option>
+      {{#each categories}}
+        <option value="{{this}}" {{#if (eq ../filters.category this)}}selected{{/if}}>{{this}}</option>
+      {{/each}}
+    </select>
+  </label>
+  <label class="field-inline">
+    <span>Brand</span>
+    <input type="text" name="brand" value="{{filters.brand}}" placeholder="Contains…" />
+  </label>
+  <button type="submit" class="btn btn-secondary">Apply</button>
+  <a href="/items" class="btn btn-ghost">Reset</a>
+</form>
+
+<div class="table-wrap card">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>Item ID</th>
+        <th>Model</th>
+        <th>Brand</th>
+        <th>Category</th>
+        <th>Status</th>
+        <th>Assigned</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each items}}
+        <tr>
+          <td><strong>{{itemId}}</strong></td>
+          <td>{{model}}</td>
+          <td>{{brand}}</td>
+          <td>{{category}}</td>
+          <td><span class="badge {{statusBadge status}}">{{status}}</span></td>
+          <td>{{#if assignedTo}}{{assignedTo.username}}{{else}}—{{/if}}</td>
+          <td class="cell-actions"><a href="/items/{{_id}}" class="btn btn-sm">View / edit</a></td>
+        </tr>
+      {{else}}
+        <tr>
+          <td colspan="7" class="cell-empty">No items match your filters.</td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>
