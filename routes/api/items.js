@@ -81,11 +81,10 @@ router.put('/:id', authenticateJwt, async (req, res, next) => {
     delete update.itemId;
     delete update.deleted;
 
-    const item = await Item.findOneAndUpdate(
-      { _id: req.params.id, deleted: false },
-      update,
-      { new: true, runValidators: true },
-    )
+    const item = await Item.findOneAndUpdate({ _id: req.params.id, deleted: false }, update, {
+      new: true,
+      runValidators: true,
+    })
       .populate('assignedTo', 'username')
       .lean();
 
