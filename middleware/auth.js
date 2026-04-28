@@ -1,5 +1,6 @@
 const jwt = require('jsonwebtoken');
 const User = require('../models/User');
+const { sendApiError } = require('./apiResponse');
 
 const auth = async (req, res, next) => {
   let token;
@@ -11,7 +12,7 @@ const auth = async (req, res, next) => {
     token = req.cookies[process.env.COOKIE_NAME];
   }
   if (!token) {
-    return res.status(401).json({ error: 'No token provided' });
+    return sendApiError(res, 401, 'No token provided');
   }
 
   let decoded;
@@ -19,9 +20,9 @@ const auth = async (req, res, next) => {
     decoded = jwt.verify(token, process.env.JWT_SECRET);
   } catch (err) {
     if (err.name === 'TokenExpiredError') {
-      return res.status(401).json({ error: 'Token expired' });
+      return sendApiError(res, 401, 'Token expired');
     }
-    return res.status(401).json({ error: 'Invalid token' });
+    return sendApiError(res, 401, 'Invalid token');
   }
 
   try {
@@ -30,10 +31,10 @@ const auth = async (req, res, next) => {
     const userId = decoded.id || decoded.sub;
     const user = await User.findById(userId).select('-password');
     if (!user) {
-      return res.status(401).json({ error: 'User not found' });
+      return sendApiError(res, 401, 'User not found');
     }
     if (user.status === 'Disabled') {
-      return res.status(403).json({ error: 'Account is disabled' });
+      return sendApiError(res, 403, 'Account is disabled');
     }
     req.user = user;
     return next();
@@ -56,11 +57,10 @@ const authOrApiKey = async (req, res, next) => {
   return validateApiKey(req, res, next);
 };
 
-const signToken = (user) => jwt.sign(
-  { id: user._id, username: user.username, role: user.role },
-  process.env.JWT_SECRET,
-  { expiresIn: process.env.JWT_EXPIRES_IN || '8h' },
-);
+const signToken = (user) =>
+  jwt.sign({ id: user._id, username: user.username, role: user.role }, process.env.JWT_SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN || '8h',
+  });
 
 module.exports = auth;
 module.exports.auth = auth;
