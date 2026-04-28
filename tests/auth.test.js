@@ -210,3 +210,25 @@ describe('auth middleware — cookie fallback', () => {
     await User.deleteMany({ username: 'cookie-test-user' });
   });
 });
+
+describe('PATCH /api/users/:id/role', () => {
+  it('Admin updates user role and returns 200 with updated role', async () => {
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'testadmin', password: 'adminpass' });
+    const adminToken = loginRes.body.token;
+
+    const tech = await User.findOne({ username: 'testtech' });
+
+    const res = await request(app)
+      .patch(`/api/users/${tech._id}/role`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ role: 'Admin' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.role).toBe('Admin');
+    expect(res.body.password).toBeUndefined();
+
+    await User.findByIdAndUpdate(tech._id, { role: 'Technician' });
+  });
+});

@@ -5,6 +5,7 @@ const app = require('../server');
 const User = require('../models/User');
 const Item = require('../models/Item');
 const ApiKey = require('../models/ApiKey');
+const Transaction = require('../models/Transaction');
 
 let adminToken;
 let techToken;
@@ -36,6 +37,9 @@ beforeAll(async () => {
 });
 
 afterAll(async () => {
+  const items = await Item.find({ itemId: { $regex: /^TEST-ITEM-/ } }).select('_id').lean();
+  const itemIds = items.map((i) => i._id);
+  await Transaction.deleteMany({ item: { $in: itemIds } });
   await User.deleteMany({ username: { $in: ['itemsadmin', 'itemstech'] } });
   await Item.deleteMany({ itemId: { $regex: /^TEST-ITEM-/ } });
   await ApiKey.deleteMany({ label: { $regex: /^items-test-/ } });
@@ -162,5 +166,94 @@ describe('DELETE /api/items/:id', () => {
       .delete(`/api/items/${itemId}`)
       .set('Authorization', `Bearer ${techToken}`);
     expect(res.status).toBe(403);
+  });
+});
+
+describe('PUT /api/items/:id', () => {
+  let item;
+
+  beforeAll(async () => {
+    const res = await request(app)
+      .post('/api/items')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        itemId: 'TEST-ITEM-PUT-001',
+        serialNumber: 'ITSN-PUT-001',
+        model: 'Original Model',
+        brand: 'Lenovo',
+        category: 'Laptop',
+        dateAcquired: '2024-01-01',
+      });
+    item = res.body;
+  });
+
+  it('updates allowed fields and returns 200', async () => {
+    const res = await request(app)
+      .put(`/api/items/${item._id}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ model: 'Updated Model', status: 'Maintenance' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.model).toBe('Updated Model');
+    expect(res.body.status).toBe('Maintenance');
+  });
+
+  it('ignores attempts to change itemId', async () => {
+    const res = await request(app)
+      .put(`/api/items/${item._id}`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ itemId: 'SHOULD-NOT-CHANGE', brand: 'Dell' });
+
+    expect(res.status).toBe(200);
+    expect(res.body.itemId).toBe('TEST-ITEM-PUT-001');
+    expect(res.body.brand).toBe('Dell');
+  });
+});
+
+describe('GET /api/items/:id/history', () => {
+  let histItem;
+
+  beforeAll(async () => {
+    const createRes = await request(app)
+      .post('/api/items')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        itemId: 'TEST-ITEM-HIST-001',
+        serialNumber: 'ITSN-HIST-001',
+        model: 'History Target',
+        brand: 'TestBrand',
+        category: 'Laptop',
+        dateAcquired: '2024-01-01',
+      });
+    histItem = createRes.body;
+
+    const techUser = await User.findOne({ username: 'itemstech' });
+    await request(app)
+      .post('/api/transactions/checkout')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .field('itemId', histItem._id)
+      .field('userId', techUser._id.toString())
+      .field('notes', 'tx-test-history');
+  });
+
+  it('returns transaction log with populated user info', async () => {
+    const res = await request(app)
+      .get(`/api/items/${histItem._id}/history`)
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    expect(res.status).toBe(200);
+    expect(Array.isArray(res.body.history)).toBe(true);
+    expect(res.body.history.length).toBeGreaterThan(0);
+    expect(res.body.history[0].type).toBe('checkout');
+    expect(res.body.history[0].assignee.username).toBe('itemstech');
+  });
+
+  it('returns 404 for a non-existent item', async () => {
+    const fakeId = new mongoose.Types.ObjectId().toString();
+    const res = await request(app)
+      .get(`/api/items/${fakeId}/history`)
+      .set('Authorization', `Bearer ${adminToken}`);
+
+    expect(res.status).toBe(404);
   });
 });
