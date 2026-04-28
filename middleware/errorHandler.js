@@ -1,3 +1,5 @@
+const { sendApiError } = require('./apiResponse');
+
 // eslint-disable-next-line no-unused-vars
 const errorHandler = (err, req, res, next) => {
   const status = err.status || err.statusCode || 500;
@@ -5,8 +7,7 @@ const errorHandler = (err, req, res, next) => {
 
   console.error(err.stack);
 
-  const message =
-    isClientError && err.message ? err.message : 'An unexpected error occurred.';
+  const message = isClientError && err.message ? err.message : 'An unexpected error occurred.';
 
   const isApi = req.path.startsWith('/api');
   if (!isApi && req.accepts('html')) {
@@ -17,9 +18,11 @@ const errorHandler = (err, req, res, next) => {
     });
   }
 
-  return res.status(status).json({
-    error: isClientError && err.message ? err.message : 'Internal Server Error',
-  });
+  return sendApiError(
+    res,
+    status,
+    isClientError && err.message ? err.message : 'Internal Server Error',
+  );
 };
 
 module.exports = errorHandler;
