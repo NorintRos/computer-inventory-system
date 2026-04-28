@@ -267,6 +267,7 @@ h2 {
 
 .field input,
 .field select,
+.field textarea,
 .field-inline input,
 .field-inline select {
   padding: 0.55rem 0.75rem;
@@ -277,13 +278,136 @@ h2 {
   font: inherit;
 }
 
+.field textarea {
+  min-height: 5rem;
+  resize: vertical;
+}
+
 .field input:focus,
 .field select:focus,
+.field textarea:focus,
 .field-inline input:focus,
 .field-inline select:focus {
   outline: none;
   border-color: var(--accent);
   box-shadow: 0 0 0 3px rgba(61, 139, 253, 0.2);
+}
+
+.row-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+/* Transaction timeline */
+.timeline {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  position: relative;
+}
+
+.timeline::before {
+  content: "";
+  position: absolute;
+  left: 0.65rem;
+  top: 0.35rem;
+  bottom: 0.35rem;
+  width: 2px;
+  background: var(--border);
+  border-radius: 1px;
+}
+
+.timeline-item {
+  position: relative;
+  padding-left: 2.25rem;
+  margin-bottom: 1.25rem;
+}
+
+.timeline-item:last-child {
+  margin-bottom: 0;
+}
+
+.timeline-marker {
+  position: absolute;
+  left: 0.35rem;
+  top: 1.1rem;
+  width: 0.65rem;
+  height: 0.65rem;
+  border-radius: 50%;
+  background: var(--accent);
+  border: 2px solid var(--surface);
+  box-shadow: 0 0 0 2px var(--border);
+}
+
+.timeline-item--checkin .timeline-marker {
+  background: var(--success);
+}
+
+.timeline-item--checkout .timeline-marker {
+  background: var(--warning);
+}
+
+.timeline-card {
+  padding: 1rem 1.25rem;
+}
+
+.timeline-header {
+  align-items: center;
+  margin-bottom: 0.75rem;
+  gap: 0.75rem;
+}
+
+.timeline-time {
+  display: inline-block;
+  margin-left: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text);
+  font-weight: 600;
+}
+
+.timeline-relative {
+  font-size: 0.8rem;
+  margin-left: 0.25rem;
+}
+
+.timeline-meta {
+  display: grid;
+  gap: 0.5rem;
+  margin: 0;
+  font-size: 0.9rem;
+}
+
+.timeline-meta dt {
+  margin: 0;
+  font-size: 0.72rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+}
+
+.timeline-meta dd {
+  margin: 0.15rem 0 0;
+}
+
+.timeline-notes {
+  margin-top: 0.85rem;
+  padding-top: 0.85rem;
+  border-top: 1px solid var(--border);
+}
+
+.timeline-notes p {
+  margin: 0.35rem 0 0;
+  white-space: pre-wrap;
+}
+
+.mb-0 {
+  margin-bottom: 0;
+}
+
+.mt-0 {
+  margin-top: 0;
 }
 
 .max-w-form {
@@ -419,10 +543,15 @@ h2 {
   padding: 0.5rem 0.5rem;
 }
 
-.cell-empty {
-  text-align: center;
-  color: var(--muted);
-  padding: 2rem 1rem;
+.history-notes-cell {
+  max-width: 14rem;
+  font-size: 0.88rem;
+}
+.history-notes-cell span {
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .cell-actions {
