@@ -1,0 +1,120 @@
+<section class="page-hero row-between">
+  <div>
+    <h1>Activity history</h1>
+    <p class="text-muted">Recent check-outs and check-ins across inventory. Open a row&rsquo;s item for the full timeline and documents.</p>
+  </div>
+  <div class="row-actions">
+    <a href="/items" class="btn btn-ghost">Inventory</a>
+    <a href="/transactions/checkout" class="btn btn-primary">Check out</a>
+  </div>
+</section>
+
+<form method="get" action="/history" class="filter-bar card">
+  <label class="field-inline">
+    <span>Event type</span>
+    <select name="type">
+      <option value="" {{#unless filters.type}}selected{{/unless}}>All</option>
+      <option value="checkout" {{#if (eq filters.type "checkout")}}selected{{/if}}>Check out</option>
+      <option value="checkin" {{#if (eq filters.type "checkin")}}selected{{/if}}>Check in</option>
+    </select>
+  </label>
+  <label class="field-inline">
+    <span>Rows</span>
+    <select name="limit">
+      <option value="50" {{#if (eq filters.limit 50)}}selected{{/if}}>50</option>
+      <option value="75" {{#if (eq filters.limit 75)}}selected{{/if}}>75</option>
+      <option value="100" {{#if (eq filters.limit 100)}}selected{{/if}}>100</option>
+      <option value="200" {{#if (eq filters.limit 200)}}selected{{/if}}>200</option>
+    </select>
+  </label>
+  <button type="submit" class="btn btn-secondary">Apply</button>
+</form>
+
+<div class="table-wrap card">
+  <table class="data-table">
+    <thead>
+      <tr>
+        <th>When</th>
+        <th>Event</th>
+        <th>Item</th>
+        <th>User</th>
+        <th>Recorded by</th>
+        <th>Notes</th>
+        <th></th>
+      </tr>
+    </thead>
+    <tbody>
+      {{#each rows}}
+        <tr>
+          <td>
+            <time datetime="{{createdAt}}">{{formatDate createdAt "MMM D, YYYY h:mm A"}}</time>
+            <div class="text-muted" style="font-size: 0.8rem;">{{timeAgo createdAt}}</div>
+          </td>
+          <td>
+            {{#if (eq type "checkout")}}
+              <span class="badge badge-warning">Out</span>
+            {{else}}
+              <span class="badge badge-success">In</span>
+            {{/if}}
+          </td>
+          <td>
+            {{#if item}}
+              {{#if item.deleted}}
+                <span class="text-muted">{{item.itemId}} <small>(removed)</small></span>
+              {{else}}
+                <a href="/history/{{item.id}}"><strong>{{item.itemId}}</strong></a>
+                <div class="text-muted" style="font-size: 0.8rem;">{{item.brand}} {{item.model}}</div>
+              {{/if}}
+            {{else}}
+              <span class="text-muted">—</span>
+            {{/if}}
+          </td>
+          <td>
+            {{#if assignee}}
+              {{assignee.username}}
+              <div class="text-muted" style="font-size: 0.8rem;">{{assignee.role}}</div>
+            {{else}}
+              —
+            {{/if}}
+          </td>
+          <td>
+            {{#if performer}}
+              {{performer.username}}
+              <div class="text-muted" style="font-size: 0.8rem;">{{performer.role}}</div>
+            {{else}}
+              —
+            {{/if}}
+          </td>
+          <td class="history-notes-cell">
+            {{#if notes}}
+              <span title="{{notes}}">{{notesPreview}}</span>
+            {{else}}
+              <span class="text-muted">—</span>
+            {{/if}}
+          </td>
+          <td class="cell-actions">
+            {{#if documentLink}}
+              <a href="{{documentLink}}" class="btn btn-sm btn-secondary" target="_blank" rel="noopener">Doc</a>
+            {{else}}
+              <span class="text-muted">—</span>
+            {{/if}}
+            {{#if item}}
+              {{#unless item.deleted}}
+                <a href="/history/{{item.id}}" class="btn btn-sm">Timeline</a>
+              {{/unless}}
+            {{/if}}
+          </td>
+        </tr>
+      {{else}}
+        <tr>
+          <td colspan="7" class="cell-empty">No transactions yet. Use <a href="/transactions/checkout">Check out</a> to create the first event.</td>
+        </tr>
+      {{/each}}
+    </tbody>
+  </table>
+</div>
+
+<section class="card mt-md">
+  <h2 class="mt-0">Per-asset timeline</h2>
+  <p class="text-muted mb-0">For a single asset&rsquo;s full story (every event in order), open <strong>History</strong> or <strong>Timeline</strong> from the <a href="/items">inventory</a> table, or click an item ID above.</p>
+</section>

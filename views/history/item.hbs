@@ -1,0 +1,67 @@
+<section class="page-hero row-between">
+  <div>
+    <h1>History</h1>
+    <p class="text-muted">
+      <strong>{{item.itemId}}</strong> · {{item.brand}} {{item.model}} · {{item.category}}
+      · <span class="badge {{statusBadge item.status}}">{{item.status}}</span>
+      {{#if item.assignedTo}}
+        · Assigned: {{item.assignedTo.username}}
+      {{/if}}
+    </p>
+  </div>
+  <div class="row-actions">
+    <a href="/history" class="btn btn-ghost">All activity</a>
+    <a href="/items/{{item._id}}" class="btn btn-ghost">Edit item</a>
+    <a href="/items" class="btn btn-primary">Inventory</a>
+  </div>
+</section>
+
+{{#if events.length}}
+<ul class="timeline" role="list">
+  {{#each events}}
+    <li class="timeline-item timeline-item--{{type}}">
+      <div class="timeline-marker" aria-hidden="true"></div>
+      <div class="timeline-card card">
+        <div class="timeline-header row-between">
+          <div>
+            {{#if (eq type "checkout")}}
+              <span class="badge badge-warning">Check out</span>
+            {{else}}
+              <span class="badge badge-success">Check in</span>
+            {{/if}}
+            <time class="timeline-time" datetime="{{createdAt}}">{{formatDate createdAt "MMM D, YYYY h:mm A"}}</time>
+            <span class="timeline-relative text-muted">({{timeAgo createdAt}})</span>
+          </div>
+          {{#if documentLink}}
+            <a href="{{documentLink}}" class="btn btn-sm btn-secondary" target="_blank" rel="noopener">View document</a>
+          {{/if}}
+        </div>
+        <dl class="timeline-meta">
+          {{#if assignee}}
+            <div>
+              <dt>User / assignee</dt>
+              <dd>{{assignee.username}} <span class="text-muted">({{assignee.role}}{{#if assignee.status}}, {{assignee.status}}{{/if}})</span></dd>
+            </div>
+          {{/if}}
+          {{#if performer}}
+            <div>
+              <dt>Recorded by</dt>
+              <dd>{{performer.username}} <span class="text-muted">({{performer.role}})</span></dd>
+            </div>
+          {{/if}}
+        </dl>
+        {{#if notes}}
+          <div class="timeline-notes">
+            <span class="text-muted">Notes</span>
+            <p>{{notes}}</p>
+          </div>
+        {{/if}}
+      </div>
+    </li>
+  {{/each}}
+</ul>
+{{else}}
+<div class="card">
+  <p class="text-muted mb-0">No transactions yet for this item. Check it out from <a href="/transactions/checkout">Check out</a> to start the timeline.</p>
+</div>
+{{/if}}

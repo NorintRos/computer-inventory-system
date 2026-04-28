@@ -1,0 +1,42 @@
+<section class="page-hero row-between">
+  <div>
+    <h1>Check in</h1>
+    <p class="text-muted">Return an in-use item to available stock. Add inspection notes and optionally upload documentation.</p>
+  </div>
+  <div class="row-actions">
+    <a href="/transactions" class="btn btn-ghost">All transactions</a>
+    <a href="/items" class="btn btn-ghost">Inventory</a>
+  </div>
+</section>
+
+{{#if items.length}}
+<form method="post" action="/transactions/checkin" enctype="multipart/form-data" class="card stack-form max-w-form">
+  <label class="field">
+    <span>Item</span>
+    <select name="itemId" required>
+      <option value="" disabled selected>— Select item —</option>
+      {{#each items}}
+        <option value="{{_id}}">{{itemId}} — {{brand}} {{model}} (assigned: {{#if assignedTo}}{{assignedTo.username}}{{else}}—{{/if}})</option>
+      {{/each}}
+    </select>
+  </label>
+
+  <label class="field">
+    <span>Inspection notes <span class="text-muted">(optional)</span></span>
+    <textarea name="notes" rows="4" maxlength="1000" placeholder="Condition, issues found, repairs needed…"></textarea>
+  </label>
+
+  <label class="field">
+    <span>Document <span class="text-muted">(optional)</span></span>
+    <input type="file" name="document" accept=".pdf,.png,.jpg,.jpeg,.webp,.gif" />
+  </label>
+
+  <div class="form-actions">
+    <button type="submit" class="btn btn-primary">Complete check-in</button>
+  </div>
+</form>
+{{else}}
+<div class="card">
+  <p class="text-muted">No items are currently checked out. <a href="/transactions/checkout">Check out an item</a> or <a href="/items">view inventory</a>.</p>
+</div>
+{{/if}}
