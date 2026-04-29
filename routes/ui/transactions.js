@@ -1,5 +1,4 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const { body, validationResult } = require('express-validator');
 const Item = require('../../models/Item');
 const User = require('../../models/User');
@@ -63,7 +62,15 @@ router.post('/checkout', upload.single('document'), checkoutValidation, async (r
       return res.redirect('/transactions/checkout');
     }
 
-    const documentId = req.file ? await saveToGridFS(req.file) : null;
+    let documentId = null;
+    if (req.file) {
+      try {
+        documentId = await saveToGridFS(req.file);
+      } catch (uploadErr) {
+        req.flash('error', 'File upload failed. No item was checked out — please try again.');
+        return res.redirect('/transactions/checkout');
+      }
+    }
 
     await Transaction.create({
       item: item._id,
@@ -122,8 +129,20 @@ router.post('/checkin', upload.single('document'), checkinValidation, async (req
       req.flash('error', `Item is not checked out (status: ${item.status}).`);
       return res.redirect('/transactions/checkin');
     }
+    if (!item.assignedTo) {
+      req.flash('error', 'Item has no assigned user — cannot check in.');
+      return res.redirect('/transactions/checkin');
+    }
 
-    const documentId = req.file ? await saveToGridFS(req.file) : null;
+    let documentId = null;
+    if (req.file) {
+      try {
+        documentId = await saveToGridFS(req.file);
+      } catch (uploadErr) {
+        req.flash('error', 'File upload failed. No item was checked in — please try again.');
+        return res.redirect('/transactions/checkin');
+      }
+    }
 
     await Transaction.create({
       item: item._id,

@@ -72,6 +72,9 @@ router.post(
       if (item.status !== 'In-Use') {
         return sendApiError(res, 400, `Item is not checked out (status: ${item.status})`);
       }
+      if (!item.assignedTo) {
+        return sendApiError(res, 400, 'Item has no assigned user — cannot check in');
+      }
 
       const documentId = req.file ? await saveToGridFS(req.file) : null;
 
