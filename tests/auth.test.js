@@ -232,3 +232,10 @@ describe('PATCH /api/users/:id/role', () => {
     await User.findByIdAndUpdate(tech._id, { role: 'Technician' });
   });
 });
+
+describe('Rate limiter configuration', () => {
+  it('has max set to 20 req/min per security spec', () => {
+    const limiter = require('../middleware/rateLimiter');
+    expect(limiter.options.max).toBe(20);
+  });
+});
