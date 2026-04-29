@@ -257,3 +257,72 @@ describe('GET /api/items/:id/history', () => {
     expect(res.status).toBe(404);
   });
 });
+
+describe('methodOverride — body strategy', () => {
+  it('rejects _method=CONNECT and does not corrupt routing', async () => {
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'itemsadmin', password: 'adminpass' });
+    const cookie = loginRes.headers['set-cookie']
+      .map((c) => c.split(';')[0])
+      .find((c) => c.startsWith(`${process.env.COOKIE_NAME}=`));
+
+    const createRes = await request(app)
+      .post('/api/items')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        itemId: 'TEST-ITEM-OVERRIDE-001',
+        serialNumber: 'ITSN-OVERRIDE-001',
+        model: 'Override Target',
+        brand: 'TestBrand',
+        category: 'Laptop',
+        dateAcquired: '2024-01-01',
+      });
+    const itemId = createRes.body._id;
+
+    const res = await request(app)
+      .post(`/items/${itemId}`)
+      .set('Cookie', cookie)
+      .set('Content-Type', 'application/x-www-form-urlencoded')
+      .send('_method=CONNECT');
+
+    expect(res.status).not.toBe(200);
+
+    const inDb = await Item.findById(itemId);
+    expect(inDb).not.toBeNull();
+    expect(inDb.deleted).toBe(false);
+  });
+
+  it('accepts _method=DELETE in the POST body and soft-deletes the item', async () => {
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'itemsadmin', password: 'adminpass' });
+    const cookie = loginRes.headers['set-cookie']
+      .map((c) => c.split(';')[0])
+      .find((c) => c.startsWith(`${process.env.COOKIE_NAME}=`));
+
+    const createRes = await request(app)
+      .post('/api/items')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({
+        itemId: 'TEST-ITEM-OVERRIDE-002',
+        serialNumber: 'ITSN-OVERRIDE-002',
+        model: 'Body Delete Target',
+        brand: 'TestBrand',
+        category: 'Laptop',
+        dateAcquired: '2024-01-01',
+      });
+    const itemId = createRes.body._id;
+
+    const res = await request(app)
+      .post(`/items/${itemId}`)
+      .set('Cookie', cookie)
+      .set('Content-Type', 'application/x-www-form-urlencoded')
+      .send('_method=DELETE');
+
+    expect(res.status).toBe(302);
+
+    const inDb = await Item.findById(itemId);
+    expect(inDb.deleted).toBe(true);
+  });
+});

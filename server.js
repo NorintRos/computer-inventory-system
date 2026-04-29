@@ -49,12 +49,14 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+
+const OVERRIDE_METHODS = new Set(['PUT', 'PATCH', 'DELETE']);
 app.use(
   methodOverride((req) => {
     if (req.body && typeof req.body === 'object' && '_method' in req.body) {
-      const method = req.body._method;
+      const method = String(req.body._method).toUpperCase();
       delete req.body._method;
-      return method;
+      return OVERRIDE_METHODS.has(method) ? method : undefined;
     }
   }),
 );
