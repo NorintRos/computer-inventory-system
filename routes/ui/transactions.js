@@ -129,6 +129,10 @@ router.post('/checkin', upload.single('document'), checkinValidation, async (req
       req.flash('error', `Item is not checked out (status: ${item.status}).`);
       return res.redirect('/transactions/checkin');
     }
+    if (!item.assignedTo) {
+      req.flash('error', 'Item has no assigned user — cannot check in.');
+      return res.redirect('/transactions/checkin');
+    }
 
     let documentId = null;
     if (req.file) {

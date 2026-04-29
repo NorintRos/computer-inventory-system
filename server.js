@@ -60,7 +60,15 @@ app.use(
     }
   }),
 );
-app.use(methodOverride('_method'));
+app.use(
+  methodOverride((req) => {
+    if (req.query && '_method' in req.query) {
+      const method = String(req.query._method).toUpperCase();
+      delete req.query._method;
+      return OVERRIDE_METHODS.has(method) ? method : undefined;
+    }
+  }),
+);
 app.use(rateLimiter);
 app.use(express.static(path.join(__dirname, 'public')));
 
