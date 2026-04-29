@@ -144,6 +144,30 @@ describe('POST /api/transactions/checkin', () => {
     expect(updated.status).toBe('Available');
     expect(updated.assignedTo).toBeNull();
   });
+
+  it('returns 400 when item is In-Use but has no assignedTo', async () => {
+    const orphanItem = await Item.create({
+      itemId: 'TX-ORPHAN-001',
+      serialNumber: 'TXSN-ORPHAN-001',
+      model: 'Orphan Checkin Target',
+      brand: 'TestBrand',
+      category: 'Laptop',
+      dateAcquired: '2024-01-01',
+      status: 'In-Use',
+      assignedTo: null,
+    });
+
+    const res = await request(app)
+      .post('/api/transactions/checkin')
+      .set('Authorization', `Bearer ${adminToken}`)
+      .field('itemId', orphanItem._id.toString())
+      .field('notes', 'tx-test-orphan-checkin');
+
+    expect(res.status).toBe(400);
+    expect(res.body.error).toMatch(/no assigned user/i);
+
+    await Item.findByIdAndDelete(orphanItem._id);
+  });
 });
 
 describe('File upload on checkout', () => {

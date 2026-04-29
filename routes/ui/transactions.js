@@ -62,7 +62,15 @@ router.post('/checkout', upload.single('document'), checkoutValidation, async (r
       return res.redirect('/transactions/checkout');
     }
 
-    const documentId = req.file ? await saveToGridFS(req.file) : null;
+    let documentId = null;
+    if (req.file) {
+      try {
+        documentId = await saveToGridFS(req.file);
+      } catch (uploadErr) {
+        req.flash('error', 'File upload failed. No item was checked out — please try again.');
+        return res.redirect('/transactions/checkout');
+      }
+    }
 
     await Transaction.create({
       item: item._id,
@@ -122,7 +130,15 @@ router.post('/checkin', upload.single('document'), checkinValidation, async (req
       return res.redirect('/transactions/checkin');
     }
 
-    const documentId = req.file ? await saveToGridFS(req.file) : null;
+    let documentId = null;
+    if (req.file) {
+      try {
+        documentId = await saveToGridFS(req.file);
+      } catch (uploadErr) {
+        req.flash('error', 'File upload failed. No item was checked in — please try again.');
+        return res.redirect('/transactions/checkin');
+      }
+    }
 
     await Transaction.create({
       item: item._id,

@@ -232,6 +232,55 @@ describe('PATCH /api/users/:id/role', () => {
 
     await User.findByIdAndUpdate(tech._id, { role: 'Technician' });
   });
+
+  it('returns 403 when a Technician attempts a role change', async () => {
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'testtech', password: 'techpass' });
+    const techToken = loginRes.body.token;
+
+    const tech = await User.findOne({ username: 'testtech' });
+
+    const res = await request(app)
+      .patch(`/api/users/${tech._id}/role`)
+      .set('Authorization', `Bearer ${techToken}`)
+      .send({ role: 'Admin' });
+
+    expect(res.status).toBe(403);
+    expect(res.body.error).toBe('Admin access required');
+  });
+
+  it('returns 400 when the role value is not a valid enum', async () => {
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'testadmin', password: 'adminpass' });
+    const adminToken = loginRes.body.token;
+
+    const tech = await User.findOne({ username: 'testtech' });
+
+    const res = await request(app)
+      .patch(`/api/users/${tech._id}/role`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ role: 'SuperUser' });
+
+    expect(res.status).toBe(400);
+  });
+
+  it('returns 404 for a non-existent user ID', async () => {
+    const loginRes = await request(app)
+      .post('/api/auth/login')
+      .send({ username: 'testadmin', password: 'adminpass' });
+    const adminToken = loginRes.body.token;
+
+    const fakeId = new mongoose.Types.ObjectId().toString();
+
+    const res = await request(app)
+      .patch(`/api/users/${fakeId}/role`)
+      .set('Authorization', `Bearer ${adminToken}`)
+      .send({ role: 'Admin' });
+
+    expect(res.status).toBe(404);
+  });
 });
 
 describe('Rate limiter configuration', () => {
