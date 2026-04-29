@@ -4,6 +4,7 @@ const bcrypt = require('bcrypt');
 const app = require('../server');
 const User = require('../models/User');
 const ApiKey = require('../models/ApiKey');
+const limiter = require('../middleware/rateLimiter');
 
 beforeAll(async () => {
   // Wait for DB connection
@@ -235,7 +236,6 @@ describe('PATCH /api/users/:id/role', () => {
 
 describe('Rate limiter configuration', () => {
   it('has max set to 20 req/min per security spec', () => {
-    const limiter = require('../middleware/rateLimiter');
     expect(limiter.options.max).toBe(20);
   });
 });
