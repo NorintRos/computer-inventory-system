@@ -1,25 +1,33 @@
 <nav class="navbar">
-  <a href="/" class="navbar-brand">Inventory System</a>
+  <a href="/" class="navbar-brand"><span class="navbar-mark" aria-hidden="true"></span> Inventory</a>
+  <button class="navbar-toggle" type="button" aria-controls="primary-navigation" aria-expanded="false">
+    <span class="navbar-toggle-bars" aria-hidden="true"></span>
+    <span class="navbar-toggle-text">Menu</span>
+  </button>
   {{#if user}}
-    <div class="navbar-links">
-      <a href="/">Dashboard</a>
-      <a href="/items">Inventory</a>
-      <a href="/transactions/checkout">Check Out</a>
-      <a href="/transactions/checkin">Check In</a>
-      <a href="/history">History</a>
-      {{#if (eq user.role "Admin")}}
-        <a href="/users">Users</a>
-        <a href="/keys">API Keys</a>
-        <a href="/reports">Reports</a>
-      {{/if}}
-    </div>
-    <div class="navbar-user">
-      <span class="navbar-user-meta">{{user.username}} · {{user.role}}</span>
-      <a href="/auth/logout" class="btn btn-sm">Logout</a>
+    <div class="navbar-menu" id="primary-navigation">
+      <div class="navbar-links">
+        <a href="/">Dashboard</a>
+        <a href="/items">Inventory</a>
+        <a href="/transactions/checkout">Check Out</a>
+        <a href="/transactions/checkin">Check In</a>
+        <a href="/history">History</a>
+        {{#if (eq user.role "Admin")}}
+          <a href="/users">Users</a>
+          <a href="/keys">API Keys</a>
+          <a href="/reports">Reports</a>
+        {{/if}}
+      </div>
+      <div class="navbar-user">
+        <span class="navbar-user-meta">{{user.username}} · {{user.role}}</span>
+        <a href="/auth/logout" class="btn btn-sm">Logout</a>
+      </div>
     </div>
   {{else}}
-    <div class="navbar-links navbar-links-end">
-      <a href="/auth/login" class="btn btn-sm btn-primary">Sign in</a>
+    <div class="navbar-menu navbar-menu-guest" id="primary-navigation">
+      <div class="navbar-links navbar-links-end">
+        <a href="/auth/login" class="btn btn-sm btn-primary">Sign in</a>
+      </div>
     </div>
   {{/if}}
 </nav>
