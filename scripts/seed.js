@@ -62,6 +62,10 @@ const seed = async () => {
     }),
   ]);
 
+  if (!admin || !technician || !helpdesk || !disabledUser) {
+    throw new Error('One or more users failed to upsert — check MongoDB connection and schema validators');
+  }
+
   const demoItems = [
     {
       itemId: 'DEMO-LAP-001',
@@ -145,18 +149,25 @@ const seed = async () => {
     },
   ];
 
-  const items = await Promise.all(demoItems.map(upsertItem));
+  const items = await Promise.all(
+    demoItems.map((d) =>
+      upsertItem(d).catch((e) => {
+        throw new Error(`Failed to upsert item ${d.itemId}: ${e.message}`);
+      }),
+    ),
+  );
   const itemById = new Map(items.map((item) => [item.itemId, item]));
 
   const demoItemIds = items.map((item) => item._id);
   await Transaction.deleteMany({ item: { $in: demoItemIds } });
 
-  await Transaction.insertMany(
+  await mongoose.connection.collection('transactions').insertMany(
     [
       {
         item: itemById.get('DEMO-LAP-001')._id,
         user: technician._id,
         type: 'checkout',
+        documentId: null,
         performedBy: admin._id,
         notes: 'Demo checkout: laptop assigned for field support rotation.',
         createdAt: daysAgo(21),
@@ -166,6 +177,7 @@ const seed = async () => {
         item: itemById.get('DEMO-DESK-001')._id,
         user: helpdesk._id,
         type: 'checkout',
+        documentId: null,
         performedBy: admin._id,
         notes: 'Demo checkout: desktop assigned to helpdesk station.',
         createdAt: daysAgo(14),
@@ -175,6 +187,7 @@ const seed = async () => {
         item: itemById.get('DEMO-LAP-002')._id,
         user: technician._id,
         type: 'checkout',
+        documentId: null,
         performedBy: admin._id,
         notes: 'Demo lifecycle: device checked out for onboarding.',
         createdAt: daysAgo(9),
@@ -184,6 +197,7 @@ const seed = async () => {
         item: itemById.get('DEMO-LAP-002')._id,
         user: technician._id,
         type: 'checkin',
+        documentId: null,
         performedBy: admin._id,
         notes: 'Demo lifecycle: returned after onboarding session.',
         createdAt: daysAgo(3),
@@ -193,6 +207,7 @@ const seed = async () => {
         item: itemById.get('DEMO-SRV-001')._id,
         user: disabledUser._id,
         type: 'checkout',
+        documentId: null,
         performedBy: admin._id,
         notes: 'Demo audit trail: historical assignment before maintenance review.',
         createdAt: daysAgo(120),
@@ -202,13 +217,14 @@ const seed = async () => {
         item: itemById.get('DEMO-SRV-001')._id,
         user: disabledUser._id,
         type: 'checkin',
+        documentId: null,
         performedBy: admin._id,
         notes: 'Demo audit trail: server returned and moved into maintenance.',
         createdAt: daysAgo(96),
         updatedAt: daysAgo(96),
       },
     ],
-    { timestamps: false },
+    { ordered: true },
   );
 
   console.log('Admin seeded: admin / admin123');
@@ -218,7 +234,7 @@ const seed = async () => {
 };
 
 seed().catch((err) => {
-  console.error('Seed failed:', err.message);
+  console.error('Seed failed:', err.stack || err.message);
   if (/Server selection timed out|ECONNREFUSED|querySrv/i.test(String(err.message))) {
     console.error(
       '\nCould not reach MongoDB. If MONGODB_URI is mongodb://127.0.0.1:..., start MongoDB locally.\n' +
