@@ -30,6 +30,8 @@ const hbsHelpers = require('./helpers/hbs');
 
 const app = express();
 
+app.set('trust proxy', 1); // Railway sits behind a proxy
+
 connectDB();
 
 app.engine(
