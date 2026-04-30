@@ -146,7 +146,7 @@ Demo accounts:
 |---|---|---|---|
 | `demo_tech` | `demo123` | Technician | Shows assigned laptop activity |
 | `demo_helpdesk` | `demo123` | Technician | Shows helpdesk desktop assignment |
-
+| `tech1` | `tech123` | Technician | technician first test |
 The seed creates demo inventory records (`DEMO-*`) across all statuses plus transaction history for checkout/checkin timelines and reports.
 
 ### 4. Start the server
