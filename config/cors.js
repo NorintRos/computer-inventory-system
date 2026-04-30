@@ -39,7 +39,7 @@ const corsOptions = {
         // ignore malformed allowed URL
       }
     }
-    callback(new Error('Not allowed by CORS'));
+    callback(new Error(`Not allowed by CORS — origin="${origin}" CORS_ORIGIN="${process.env.CORS_ORIGIN}"`));
   },
   credentials: true,
 };
