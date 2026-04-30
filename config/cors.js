@@ -1,7 +1,7 @@
 const corsOptions = {
   origin(origin, callback) {
-    // Non-browser clients often omit Origin.
-    if (!origin) {
+    // Non-browser clients omit Origin; browsers send "null" after scheme-change redirects (HTTP→HTTPS).
+    if (!origin || origin === 'null') {
       callback(null, true);
       return;
     }
@@ -39,7 +39,7 @@ const corsOptions = {
         // ignore malformed allowed URL
       }
     }
-    callback(new Error(`Not allowed by CORS — origin="${origin}" CORS_ORIGIN="${process.env.CORS_ORIGIN}"`));
+    callback(new Error('Not allowed by CORS'));
   },
   credentials: true,
 };
