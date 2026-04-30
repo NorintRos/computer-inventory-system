@@ -27,9 +27,17 @@ const corsOptions = {
     }
 
     const allowed = process.env.CORS_ORIGIN;
-    if (allowed && origin === allowed) {
-      callback(null, true);
-      return;
+    if (allowed) {
+      try {
+        const reqHost = new URL(origin).hostname;
+        const appHost = new URL(allowed).hostname;
+        if (reqHost === appHost) {
+          callback(null, true);
+          return;
+        }
+      } catch {
+        // ignore malformed allowed URL
+      }
     }
     callback(new Error('Not allowed by CORS'));
   },

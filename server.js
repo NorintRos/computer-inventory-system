@@ -47,7 +47,7 @@ app.set('views', path.join(__dirname, 'views'));
 
 app.use(helmet());
 app.use(morgan('combined'));
-app.use('/api', cors(corsOptions));
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
