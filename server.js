@@ -49,6 +49,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
+app.use(attachUser);
 
 const OVERRIDE_METHODS = new Set(['PUT', 'PATCH', 'DELETE']);
 app.use(
@@ -69,8 +70,8 @@ app.use(
     }
   }),
 );
-app.use(rateLimiter);
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(rateLimiter);
 
 app.use(session(sessionConfig));
 app.use(flash());
@@ -82,8 +83,6 @@ app.use((req, res, next) => {
   res.locals.error = error.length ? error.join(' ') : undefined;
   next();
 });
-
-app.use(attachUser);
 
 app.use('/api/auth', require('./routes/api/auth'));
 app.use('/api/users', require('./routes/api/users'));
