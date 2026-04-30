@@ -49,9 +49,29 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(cookieParser());
-app.use(methodOverride('_method'));
-app.use(rateLimiter);
+app.use(attachUser);
+
+const OVERRIDE_METHODS = new Set(['PUT', 'PATCH', 'DELETE']);
+app.use(
+  methodOverride((req) => {
+    if (req.body && typeof req.body === 'object' && '_method' in req.body) {
+      const method = String(req.body._method).toUpperCase();
+      delete req.body._method;
+      return OVERRIDE_METHODS.has(method) ? method : undefined;
+    }
+  }),
+);
+app.use(
+  methodOverride((req) => {
+    if (req.query && '_method' in req.query) {
+      const method = String(req.query._method).toUpperCase();
+      delete req.query._method;
+      return OVERRIDE_METHODS.has(method) ? method : undefined;
+    }
+  }),
+);
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(rateLimiter);
 
 app.use(session(sessionConfig));
 app.use(flash());
@@ -63,8 +83,6 @@ app.use((req, res, next) => {
   res.locals.error = error.length ? error.join(' ') : undefined;
   next();
 });
-
-app.use(attachUser);
 
 app.use('/api/auth', require('./routes/api/auth'));
 app.use('/api/users', require('./routes/api/users'));

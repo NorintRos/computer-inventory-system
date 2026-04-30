@@ -53,13 +53,16 @@
     <tbody>
       {{#each items}}
         <tr>
-          <td><strong>{{itemId}}</strong></td>
+          <td><code class="mono-id">{{itemId}}</code></td>
           <td>{{model}}</td>
           <td>{{brand}}</td>
           <td>{{category}}</td>
           <td><span class="badge {{statusBadge status}}">{{status}}</span></td>
           <td>{{#if assignedTo}}{{assignedTo.username}}{{else}}—{{/if}}</td>
-          <td class="cell-actions"><a href="/items/{{_id}}" class="btn btn-sm">View / edit</a></td>
+          <td class="cell-actions">
+            <a href="/items/{{_id}}" class="btn btn-sm">Edit</a>
+            <a href="/history/{{_id}}" class="btn btn-sm btn-secondary">History</a>
+          </td>
         </tr>
       {{else}}
         <tr>

@@ -5,23 +5,28 @@
 
 <div class="stat-grid">
   <a href="/items" class="stat-card">
-    <span class="stat-value">{{stats.total}}</span>
+    <span class="stat-icon stat-icon-total" aria-hidden="true"></span>
+    <span class="stat-value" data-count="{{stats.total}}">{{stats.total}}</span>
     <span class="stat-label">Total items</span>
   </a>
   <a href="/items?status=Available" class="stat-card stat-available">
-    <span class="stat-value">{{stats.available}}</span>
+    <span class="stat-icon" aria-hidden="true"></span>
+    <span class="stat-value" data-count="{{stats.available}}">{{stats.available}}</span>
     <span class="stat-label">Available</span>
   </a>
   <a href="/items?status=In-Use" class="stat-card stat-inuse">
-    <span class="stat-value">{{stats.inUse}}</span>
+    <span class="stat-icon" aria-hidden="true"></span>
+    <span class="stat-value" data-count="{{stats.inUse}}">{{stats.inUse}}</span>
     <span class="stat-label">In use</span>
   </a>
   <a href="/items?status=Maintenance" class="stat-card stat-maintenance">
-    <span class="stat-value">{{stats.maintenance}}</span>
+    <span class="stat-icon" aria-hidden="true"></span>
+    <span class="stat-value" data-count="{{stats.maintenance}}">{{stats.maintenance}}</span>
     <span class="stat-label">Maintenance</span>
   </a>
   <a href="/items?status=Retired" class="stat-card stat-retired">
-    <span class="stat-value">{{stats.retired}}</span>
+    <span class="stat-icon" aria-hidden="true"></span>
+    <span class="stat-value" data-count="{{stats.retired}}">{{stats.retired}}</span>
     <span class="stat-label">Retired</span>
   </a>
 </div>
@@ -31,6 +36,7 @@
   <ul class="link-list">
     <li><a href="/items">Browse inventory</a></li>
     <li><a href="/items/new">Add new item</a></li>
-    <li><a href="/transactions/checkout">Check out</a> · <a href="/transactions/checkin">Check in</a></li>
+    <li><a href="/transactions">Transactions hub</a> — <a href="/transactions/checkout">check out</a> · <a href="/transactions/checkin">check in</a></li>
+    <li><a href="/history">Item history</a> (pick an asset from inventory)</li>
   </ul>
 </section>

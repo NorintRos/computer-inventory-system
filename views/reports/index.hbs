@@ -1,0 +1,116 @@
+<section class="page-hero">
+  <h1>Reports dashboard</h1>
+  <p class="text-muted">Inventory summary, aging items, and per-user audit search.</p>
+</section>
+
+<section class="card">
+  <h2>Inventory summary</h2>
+  <div class="stat-grid mt-md">
+    <div class="stat-card">
+      <span class="stat-value">{{summary.total}}</span>
+      <span class="stat-label">Total items</span>
+    </div>
+    <div class="stat-card stat-available">
+      <span class="stat-value">{{summary.available}}</span>
+      <span class="stat-label">Available</span>
+    </div>
+    <div class="stat-card stat-inuse">
+      <span class="stat-value">{{summary.inUse}}</span>
+      <span class="stat-label">In use</span>
+    </div>
+    <div class="stat-card stat-maintenance">
+      <span class="stat-value">{{summary.maintenance}}</span>
+      <span class="stat-label">Maintenance</span>
+    </div>
+    <div class="stat-card stat-retired">
+      <span class="stat-value">{{summary.retired}}</span>
+      <span class="stat-label">Retired</span>
+    </div>
+  </div>
+</section>
+
+<section class="card mt-lg">
+  <h2>Aging list</h2>
+  <p class="text-muted">Items acquired before {{formatDate aging.threshold "MMM D, YYYY"}} ({{aging.count}} total).</p>
+  <div class="table-wrap mt-md">
+    <table class="data-table">
+      <thead>
+        <tr>
+          <th>Item ID</th>
+          <th>Model</th>
+          <th>Category</th>
+          <th>Status</th>
+          <th>Assigned</th>
+          <th>Date acquired</th>
+        </tr>
+      </thead>
+      <tbody>
+        {{#each aging.items}}
+          <tr>
+            <td><strong>{{itemId}}</strong></td>
+            <td>{{brand}} {{model}}</td>
+            <td>{{category}}</td>
+            <td><span class="badge {{statusBadge status}}">{{status}}</span></td>
+            <td>{{#if assignedTo}}{{assignedTo.username}}{{else}}—{{/if}}</td>
+            <td>{{formatDate dateAcquired "MMM D, YYYY"}}</td>
+          </tr>
+        {{else}}
+          <tr>
+            <td colspan="6" class="cell-empty">No aging items found.</td>
+          </tr>
+        {{/each}}
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section class="card mt-lg">
+  <h2>User audit search</h2>
+  <form method="get" action="/reports" class="filter-bar">
+    <label class="field-inline">
+      <span>User</span>
+      <select name="userId">
+        <option value="">Select user…</option>
+        {{#each users}}
+          <option value="{{_id}}" {{#if (eq (toStringId _id) ../selectedUserId)}}selected{{/if}}>
+            {{username}} ({{role}} · {{status}})
+          </option>
+        {{/each}}
+      </select>
+    </label>
+    <button type="submit" class="btn btn-secondary">Run audit</button>
+    <a href="/reports" class="btn btn-ghost">Reset</a>
+  </form>
+
+  {{#if audit.user}}
+    <p class="text-muted mt-md">
+      {{audit.user.username}} currently has {{audit.count}} checked-out item(s).
+    </p>
+    <div class="table-wrap mt-md">
+      <table class="data-table compact">
+        <thead>
+          <tr>
+            <th>Item ID</th>
+            <th>Model</th>
+            <th>Status</th>
+            <th>Updated</th>
+          </tr>
+        </thead>
+        <tbody>
+          {{#each audit.items}}
+            <tr>
+              <td><strong>{{itemId}}</strong></td>
+              <td>{{brand}} {{model}}</td>
+              <td><span class="badge {{statusBadge status}}">{{status}}</span></td>
+              <td>{{formatDate updatedAt "MMM D, YYYY HH:mm"}}</td>
+            </tr>
+          {{else}}
+            <tr>
+              <td colspan="4" class="cell-empty">No active assignments for this user.</td>
+            </tr>
+          {{/each}}
+        </tbody>
+      </table>
+    </div>
+  {{/if}}
+</section>

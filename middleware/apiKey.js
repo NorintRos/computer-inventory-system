@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const bcrypt = require('bcrypt');
 const ApiKey = require('../models/ApiKey');
+const { sendApiError } = require('./apiResponse');
 
 function hashLookup(rawKey) {
   return crypto.createHash('sha256').update(rawKey, 'utf8').digest('hex');
@@ -13,12 +14,12 @@ function hashLookup(rawKey) {
 async function validateApiKey(req, res, next) {
   const raw = req.headers['x-api-key'];
   if (!raw || typeof raw !== 'string') {
-    return res.status(401).json({ error: 'API key required' });
+    return sendApiError(res, 401, 'API key required');
   }
 
   const trimmed = raw.trim();
   if (!trimmed) {
-    return res.status(401).json({ error: 'API key required' });
+    return sendApiError(res, 401, 'API key required');
   }
 
   const lookupHash = hashLookup(trimmed);
@@ -29,17 +30,17 @@ async function validateApiKey(req, res, next) {
       .populate('createdBy', 'username role status');
 
     if (!doc) {
-      return res.status(401).json({ error: 'Invalid API key' });
+      return sendApiError(res, 401, 'Invalid API key');
     }
 
     const match = await bcrypt.compare(trimmed, doc.hashedKey);
     if (!match) {
-      return res.status(401).json({ error: 'Invalid API key' });
+      return sendApiError(res, 401, 'Invalid API key');
     }
 
     const creator = doc.createdBy;
     if (!creator || creator.status !== 'Enabled') {
-      return res.status(401).json({ error: 'Invalid API key' });
+      return sendApiError(res, 401, 'Invalid API key');
     }
 
     req.apiKey = doc;
